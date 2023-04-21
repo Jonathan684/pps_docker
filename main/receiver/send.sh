@@ -1,0 +1,1 @@
+scp receiver root@192.168.1.36:/tmp/
