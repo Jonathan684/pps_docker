@@ -99,7 +99,7 @@ int main(){
     //__api __check_ret ssize_t iio_device_debug_attr_write(const struct iio_device *dev,
     //		const char *attr, const char *src);
 
-    iio_device_debug_attr_write(dev,"loopback","1");//0-1-2
+    iio_device_debug_attr_write(dev,"loopback","0");//0-1-2
     //
     printf("attribute count ---------->%d\n",i);
     printf("attr name %s\n",attr);
@@ -274,7 +274,7 @@ int receive(struct iio_context *ctx)
  
 	rx0_i = iio_device_find_channel(dev, "voltage0", 0);
 	rx0_q = iio_device_find_channel(dev, "voltage1", 0);
- 
+    
 	iio_channel_enable(rx0_i);
 	iio_channel_enable(rx0_q);
  
@@ -307,12 +307,13 @@ int receive(struct iio_context *ctx)
         {
             int16_t *buf_i = p_dat;
             int16_t *buf_q = r_dat;
+            
             // for( ; ; )
             /* Process here */
-            if(flag == 0 )
-            {
-            printf(" a: %d b:%d\n",buf_i,buf_q);
-            flag ++;
+           // if(flag == 0 )
+           // {
+            
+          /*  flag ++;
             }
             if(flag == 1 )
             {
@@ -323,9 +324,9 @@ int receive(struct iio_context *ctx)
             {
             printf(" a: %d b:%d\n",buf_i,buf_q);
             flag ++;
-            }
-            
+            }*/
         }
+        printf(" a: %d b:%d\n",buf_i,buf_q);
     }
     printf("== Finish Sdr_2 ==\n");
     iio_buffer_destroy(rxbuf);

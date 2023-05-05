@@ -1,0 +1,1 @@
+scp all_attr_read root@192.168.1.37:/tmp/

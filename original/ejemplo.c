@@ -240,20 +240,27 @@ int main (int argc, char **argv)
 
 	double samplingRate = 16.0e6;
 	double freq = samplingRate/16.0;
-	complexExp(txSignal, 1024, freq, samplingRate);
+	//complexExp(txSignal, 1024, freq, samplingRate);
 	
 	//void *data;
-	iio_buffer_set_data(txbuf, txSignal);
+	int flag = 0;
+	//iio_buffer_set_data(txbuf,(void *) txSignal[0]);
 	while (!stop)
 	{
 		ssize_t nbytes_rx, nbytes_tx;
 		char *p_dat, *p_end;
 		ptrdiff_t p_inc;
 		// Schedule TX buffer
-		nbytes_tx = iio_buffer_push(txbuf);
+		nbytes_tx = iio_buffer_push(txbuf);// solo es valida para buffer de salida.
+		/*
+			El propósito de la iio_buffer_pushfunción es 
+			enviar las muestras en la iio_bufferestructura 
+			al hardware para su salida. El bufargumento es 
+			un puntero a la iio_bufferestructura que debe enviarse al hardware.
+		*/
 		if (nbytes_tx < 0) { printf("Error pushing buf %d\n", (int) nbytes_tx); shutdown(); }
 		// Refill RX buffer
-		nbytes_rx = iio_buffer_refill(rxbuf);
+		nbytes_rx = iio_buffer_refill(rxbuf); // solo en valida para buffer de entrada.
 		if (nbytes_rx < 0) { printf("Error refilling buf %d\n",(int) nbytes_rx); shutdown(); }
 		// READ: Get pointers to RX buf and read IQ from RX buf port 0
 		p_inc = iio_buffer_step(rxbuf);
@@ -265,7 +272,8 @@ int main (int argc, char **argv)
 			((int16_t*)p_dat)[0] = q;
 			((int16_t*)p_dat)[1] = i;
 		}
-		printf("p_dat %d %d\n",p_dat[0] , p_dat[0]);
+		printf("\tp_dat %d %d\n",p_dat[0] , p_dat[0]);
+		printf("\t i: %d \n",p_dat[1] );
 		// WRITE: Get pointers to TX buf and write IQ to TX buf port 0
 		p_inc = iio_buffer_step(txbuf);
 		p_end = iio_buffer_end(txbuf);
@@ -274,13 +282,23 @@ int main (int argc, char **argv)
 			// Example: fill with zeros
 			// 12-bit sample needs to be MSB alligned so shift by 4
 			// https://wiki.analog.com/resources/eval/user-guides/ad-fmcomms2-ebz/software/basic_iq_datafiles#binary_format
-			((int16_t*)p_dat)[0] = 0 << 4; // Real (I)
-			((int16_t*)p_dat)[1] = 0 << 4; // Imag (Q)
+			//((int16_t*)p_dat)[0] = 0 << 4; // Real (I)
+			//((int16_t*)p_dat)[1] = 0 << 4; // Imag (Q)
+			((int16_t*)p_dat)[0] = 16000; // Real (I)
+			((int16_t*)p_dat)[1] = 16000; // Imag (Q)
+			
 		}
+		//iio_buffer_push(txbuf);
+		printf("--> %d \n",iio_device_get_sample_size(tx)); //cf-ad9361-dds-core-lpc
 		// Sample counter increment and status output
 		nrx += nbytes_rx / iio_device_get_sample_size(rx);
 		ntx += nbytes_tx / iio_device_get_sample_size(tx);
 		printf("\tRX %8.2f MSmp, TX %8.2f MSmp\n", nrx/1e6, ntx/1e6);
+		if(flag == 10){
+			shutdown();
+			stop = true;
+		}
+		flag++;
 	}
 	shutdown();
 	return 0;

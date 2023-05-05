@@ -92,7 +92,7 @@ int main(){
     const char * attr = iio_device_find_debug_attr(dev, "loopback");
 
     iio_device_debug_attr_read(dev,"loopback",buffer,sizeof(buffer));
-    iio_device_debug_attr_write(dev,"loopback","1");//0-1-2
+    iio_device_debug_attr_write(dev,"loopback","0");//0-1-2
 
     printf("attribute count ---------->%d\n",i);
     printf("attr name %s\n",attr);
