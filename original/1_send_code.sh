@@ -1,1 +1,1 @@
-scp ejemplo root@192.168.1.37:/tmp/
+sshpass -p "analog" scp ejemplo root@192.168.1.37:/tmp/

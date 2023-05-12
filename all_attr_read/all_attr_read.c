@@ -13,8 +13,9 @@ int main() {
     freopen("output.txt", "w", stdout);
 
     // Write to stdout (will be redirected to file)
-    printf("Hello, world!\n");
-    printf("Genau aleman \n");
+    printf("\t Hello, world!\n");
+    printf("\t Genau \n");
+    
     struct iio_context *ctx;/* Create a default IIO context */
     struct iio_device  *dev;
     struct iio_channel *channel;

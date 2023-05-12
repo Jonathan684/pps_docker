@@ -1,5 +1,5 @@
-Hello, world!
-Genau aleman 
+	 Hello, world!
+	 Genau 
 ======================
 Found 4 IIO devices :
 ======================
@@ -100,7 +100,7 @@ Channel has 15 attributes:
   rf_dc_offset_tracking_en   = 1
   rf_port_select   = A_N
   rf_port_select_available   = A_BALANCED B_BALANCED C_BALANCED A_N A_P B_N B_P C_N C_P TX_MONITOR1 TX_MONITOR2 TX_MONITOR1_2
-  rssi   = 103.50 dB
+  rssi   = 105.25 dB
   sampling_frequency   = 4999999
   sampling_frequency_available   = [520833 1 30720000]
 ---------------------------
@@ -139,7 +139,7 @@ Channel has 8 attributes:
 ---------------------------
 Channel name----------: (null)
 Channel has 1 attributes:
-  input   = 31579
+  input   = 33333
 ---------------------------
 Channel name----------: (null)
 Channel has 10 attributes:
@@ -161,7 +161,7 @@ Channel has 13 attributes:
   gain_control_mode_available   = manual fast_attack slow_attack hybrid
   offset   = 57
   quadrature_tracking_en   = 1
-  raw   = 1171
+  raw   = 1127
   rf_bandwidth   = 16000000
   rf_bandwidth_available   = [200000 1 56000000]
   rf_dc_offset_tracking_en   = 1
@@ -183,43 +183,43 @@ Device attributes
 	attr  0: sampling_frequency               value: 961538
 Channel name----------: vccoddr
 Channel has 2 attributes:
-  raw   = 1842
+  raw   = 1845
   scale   = 0.732421875
 ---------------------------
 Channel name----------: vccint
 Channel has 2 attributes:
-  raw   = 1384
+  raw   = 1385
   scale   = 0.732421875
 ---------------------------
 Channel name----------: vccpaux
 Channel has 2 attributes:
-  raw   = 2454
+  raw   = 2457
   scale   = 0.732421875
 ---------------------------
 Channel name----------: (null)
 Channel has 3 attributes:
   offset   = -2219
-  raw   = 2645
+  raw   = 2658
   scale   = 123.040771484
 ---------------------------
 Channel name----------: vrefn
 Channel has 2 attributes:
-  raw   = 5
+  raw   = 6
   scale   = 0.732421875
 ---------------------------
 Channel name----------: vccaux
 Channel has 2 attributes:
-  raw   = 2457
+  raw   = 2456
   scale   = 0.732421875
 ---------------------------
 Channel name----------: vccbram
 Channel has 2 attributes:
-  raw   = 1383
+  raw   = 1386
   scale   = 0.732421875
 ---------------------------
 Channel name----------: vccpint
 Channel has 2 attributes:
-  raw   = 1380
+  raw   = 1381
   scale   = 0.732421875
 ---------------------------
 Channel name----------: (null)
@@ -229,7 +229,7 @@ Channel has 2 attributes:
 ---------------------------
 Channel name----------: vrefp
 Channel has 2 attributes:
-  raw   = 1710
+  raw   = 1709
   scale   = 0.732421875
 ---------------------------
 =========================
