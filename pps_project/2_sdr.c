@@ -38,31 +38,34 @@ int main(){
         return -1;
     }
 
-    struct iio_device *dev;
-    struct iio_device *dev2;
-    struct iio_channel *tx0_i, *tx0_q;
-    struct iio_buffer *txbuf;
+    struct iio_device *dev_rx;
+    struct iio_device *dev_main;
+    struct iio_channel *rx0_i, *rx0_q;
+    struct iio_buffer *rxbuf;
 
     /* Set sample rate */
 
 
-    dev2 = iio_context_find_device(ctx, "ad9361-phy"); //dispositivo para enviar
+    dev_main = iio_context_find_device(ctx, "ad9361-phy"); //dispositivo para enviar
     //configuracion de la entrada
-    struct iio_channel *chnn_device_input = iio_device_find_channel(dev2, "voltage0", false);//input 
+    struct iio_channel *chnn_device_input = iio_device_find_channel(dev_main, "voltage0", false);//input 
     int ret = iio_channel_attr_write(chnn_device_input, "sampling_frequency", "700000");//3999999
+    
     if (ret < 0) {
        perror("Error setting sampling_frequency rate RX: "); 
         return ret;
     }
     else printf("Set correct sampling_frequency RX \n");
+    
     int ret2 = iio_channel_attr_write(chnn_device_input, "rf_bandwidth", "16000000");//3999999
     if (ret2 < 0) {
        perror("Error setting rf_bandwidth rate RX: "); 
         return ret2;
     }
     else printf("Set correct rf_bandwidth RX \n");
+   
     /// configurando la salida
-    struct iio_channel *chnn_device_output = iio_device_find_channel(dev2, "voltage0", true);//output 
+    struct iio_channel *chnn_device_output = iio_device_find_channel(dev_main, "voltage0", true);//output 
     int ret_output;
     ret_output = iio_channel_attr_write(chnn_device_output, "sampling_frequency", "700000");//3999999
     if (ret_output < 0) {
@@ -134,8 +137,9 @@ int main(){
    //710000000
    //# cat out_altvoltage1_TX_LO_frequency
    //2400000000
-    struct iio_channel *chnn_altvoltage1_output = iio_device_find_channel(dev2, "altvoltage1", true);//output 
-    struct iio_channel *chnn_altvoltage0_output = iio_device_find_channel(dev2, "altvoltage0", true);//output 
+    struct iio_channel *chnn_altvoltage1_output = iio_device_find_channel(dev_main, "altvoltage1", true);//output 
+    struct iio_channel *chnn_altvoltage0_output = iio_device_find_channel(dev_main, "altvoltage0", true);//output 
+    
     ret_output = iio_channel_attr_write(chnn_altvoltage1_output, "frequency", "710000000");//# Receive path AGC Options: slow_attack, fast_attack, manual
     if (ret_output < 0) { 
        perror("Error setting frecuency rate RX: "); 
@@ -143,6 +147,7 @@ int main(){
     }
     else printf("Set correct frecuency RX  \n");
 
+    
     ret_output = iio_channel_attr_write(chnn_altvoltage0_output, "frequency", "710000000");//# Receive path AGC Options: slow_attack, fast_attack, manual
     if (ret_output < 0) { 
        perror("Error setting frecuency rate RX: "); 
@@ -155,10 +160,14 @@ int main(){
 
     iio_channel_enable(chnn_altvoltage1_output);
     iio_channel_enable(chnn_altvoltage0_output);
-
-    dev = iio_context_find_device(ctx, "cf-ad9361-dds-core-lpc"); //dispositivo para enviar
-    tx0_i = iio_device_find_channel(dev, "voltage0", true);
-    tx0_q = iio_device_find_channel(dev, "voltage1", true);
+    printf("Posible error aqui 0\n");
+    dev_rx = iio_context_find_device(ctx, "cf-ad9361-lpc"); //dispositivo para enviar
+    
+    printf("Posible error aqui 1\n");
+    rx0_i = iio_device_find_channel(dev_rx, "voltage0", false);//(input)
+    printf("Posible error aqui 2\n");
+    rx0_q = iio_device_find_channel(dev_rx, "voltage1", false);//(input)
+    printf("Posible error aqui 3\n");
 
     /* Set sample rate */
     // printf("Set frecuencia ... \n");
@@ -172,13 +181,13 @@ int main(){
     //     perror("Error setting TX Q sample rate: ");
     //     return ret;
     // }
-    iio_channel_enable(tx0_i);
-    iio_channel_enable(tx0_q);
+    iio_channel_enable(rx0_i);
+    iio_channel_enable(rx0_q);
 
-    txbuf = iio_device_create_buffer(dev, 1024, true);//Paso :0 Fin :-1225617408  Paso :-1225617408 Fin :-1225617408
+    rxbuf = iio_device_create_buffer(dev_rx, 1024, false);//Paso :0 Fin :-1225617408  Paso :-1225617408 Fin :-1225617408
     //txbuf = iio_device_create_buffer(dev, 1024, true);//Paso :0 Fin :-1225359360  Paso :-1225359360 Fin :-1225359360
     //txbuf = iio_device_create_buffer(dev, 512, true);   //Paso :0 Fin :-1225533440  Paso :-1225533440 Fin :-1225533440
-    if (!txbuf) {
+    if (!rxbuf) {
         perror("Could not create TX buffer");
         //shutdown();
         iio_context_destroy(ctx);
@@ -201,61 +210,34 @@ int main(){
 	    return 1;
 	}
 
-	
-    double samplingRate = 16.0e6;
-    double freq = samplingRate/16.0;
-    int N = 1024;//1024;
-    complexExp(txSignal, N, freq, samplingRate);
-    
-    //complexExp(complex_t *signal, int N, double Fc, double Fs) 
-	/*----------------------------------------------------------------------------------*/
-    
-    //iio_buffer_set_data(txbuf,&txSignal[0].re);
-    
-
-
-    /// intentando cargar el buffer solo un canal
-    ssize_t nbytes_tx;
+	// Refill RX buffer
+    printf("Recibiendo ...\n");
+    ssize_t nbytes_rx;
 	char *p_dat, *p_end;
 	ptrdiff_t p_inc;
-	// Schedule TX buffer
-	nbytes_tx = iio_buffer_push(txbuf);// solo es valida para buffer de salida.
-	/*
-		El propósito de la iio_buffer_pushfunción es 
-		enviar las muestras en la iio_bufferestructura 
-		al hardware para su salida. El bufargumento es 
-		un puntero a la iio_bufferestructura que debe enviarse al hardware.
-	*/
-	if (nbytes_tx < 0) { 
-        printf("Error pushing buf %d\n", (int) nbytes_tx); 
-     //   shutdown(); 
-    }
-	
-    // WRITE: Get pointers to TX buf and write IQ to TX buf port 0
-	p_inc = iio_buffer_step(txbuf);
-	p_end = iio_buffer_end(txbuf);
     int increm = 0;
-    while (!stop)
-	{
-        for (p_dat = (char *)iio_buffer_first(txbuf, tx0_i); p_dat < p_end; p_dat += p_inc) {
-                
-                // Example: fill with zeros
-                // 12-bit sample needs to be MSB alligned so shift by 4
-                // https://wiki.analog.com/resources/eval/user-guides/ad-fmcomms2-ebz/software/basic_iq_datafiles#binary_format
-                //((int16_t*)p_dat)[0] = 0 << 4; // Real (I)
-                //((int16_t*)p_dat)[1] = 0 << 4; // Imag (Q)
-                ((int16_t*)p_dat)[0] =  (int16_t)txSignal[increm].re; // Real (I)
-                ((int16_t*)p_dat)[1] = (int16_t)txSignal[increm].im; // Imag (Q)
-                increm = increm +1;
-                
-        }
+
+	nbytes_rx = iio_buffer_refill(rxbuf); // solo en valida para buffer de entrada.
+	//if (nbytes_rx < 0) { printf("Error refilling buf %d\n",(int) nbytes_rx); shutdown(); }
+	    // READ: Get pointers to RX buf and read IQ from RX buf port 0
+	p_inc = iio_buffer_step(rxbuf);
+	p_end = iio_buffer_end(rxbuf);
+
+	for (p_dat = (char *)iio_buffer_first(rxbuf, rx0_i); p_dat < p_end; p_dat += p_inc) {
+        txSignal[increm].re = ((int16_t*)p_dat)[0];
+        txSignal[increm].im = ((int16_t*)p_dat)[1];
+        increm = increm +1;
+	}
+    printf("txSignal:\n");
+    for (int i = 0; i < 11; i++) {
+        printf("txSignal[%d] = (%f, %f)\n", i, (txSignal[i].re ), (txSignal[i].im));
     }
-    iio_buffer_push(txbuf);
-    printf("Transmitiendo ... buffer ciclico \n");
-    sleep(30);
+    
+    
+    //sleep(30);
     free(txSignal);
     printf("== Finish Sdr_1 ==\n");
-    iio_buffer_destroy(txbuf);
+    iio_buffer_destroy(rxbuf);
     iio_context_destroy(ctx);
     return 0;
 }

@@ -2,7 +2,7 @@ CC=arm-linux-gnueabihf-gcc
 CFLAGS=-mfloat-abi=hard --sysroot=$(HOME)/pluto-0.32.sysroot -std=gnu99 -g -Wall -Wextra
 LIBS=-lpthread -liio -lm
 
-all:1_sdr 2_sdr  #sdr_1 sdr_2 prueba_33 # buffer 
+all:1_sdr # 2_sdr  #sdr_1 sdr_2 prueba_33 # buffer 
 
 sdr_1: sdr_1
 	$(CC) $(CFLAGS) -o sdr_1 sdr_1.c $(LIBS)  
