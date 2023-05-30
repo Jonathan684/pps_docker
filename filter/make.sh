@@ -3,6 +3,8 @@ make clean
 sleep 0.5
 make
 echo "====================================================="
+echo "                 MAKEFILE                            "
+echo "====================================================="
 #0 Crear un espacio de trabajo llamado jonathan
 #Copiar el filter
 sshpass -p "analog" scp filter_jupyter.txt root@192.168.1.37:/jonathan/

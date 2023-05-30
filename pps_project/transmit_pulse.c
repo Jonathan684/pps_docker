@@ -8,6 +8,10 @@
 //#include <errno>
 #define IIO_CHANNEL_TX 0x1
 #define SAMPLE_COUNT 1024 // Para el buffer
+#define FILTER_LENGTH 4096
+#define SIGNAL_LENGTH 4096
+//#define FILTER_LENGTH 101
+
 
 bool stop;
 
@@ -21,18 +25,23 @@ void handle_sig(int sig)
 	printf("Waiting for process to finish... Got signal %d\n", sig);
 	stop = true;
 }
+
+
+
 /*
     Para transmitir verificar:
     - loopback desactivado
     - Frecuencias
+    - 
 */
 void complexExp(complex_t *signal, int N, double Fc, double Fs);
-void generatePulse(double *signal, int N, double pulseWidth, double Fs);
-void applyRaisedCosineFilter(double*, int, double, int, double*);
-int read_config();
+void generatePulse(double *signal, int N);
+
+//void applyRaisedCosineFilter(double*, int, double, int, double*);
+
 
 int main(){
-    //read_config();
+    printf("Transmision de un pulso\n");
     stop = false;
     signal(SIGINT, handle_sig);
     struct iio_context *ctx = NULL;
@@ -41,13 +50,13 @@ int main(){
         printf("Unable to create IIO context\n");
         return -1;
     }
+    //printf("\t  TRANSMITTER\n");
+    
     struct iio_device *main_dev;
     struct iio_device *dev_tx;
     struct iio_channel *tx0_i, *tx0_q;
     struct iio_buffer *txbuf;
     double samplingRate = 16000000.0;
-    int ret_output;
-    int ret_input;
     main_dev = iio_context_find_device(ctx, "ad9361-phy");
     //configuracion de la entrada
     struct iio_channel *chnn_device_input = iio_device_find_channel(main_dev, "voltage0", false);//input 
@@ -57,15 +66,15 @@ int main(){
         return ret;
     }
     //else printf("Set correct sampling_frequency RX \n");
-    ret_input = iio_channel_attr_write(chnn_device_input, "rf_bandwidth", "16000000");//3999999
-    if (ret_input < 0) {
+    int ret2 = iio_channel_attr_write(chnn_device_input, "rf_bandwidth", "16000000");//3999999
+    if (ret2 < 0) {
        perror("Error setting rf_bandwidth rate RX: "); 
-        return ret_input;
+        return ret2;
     }
     //else printf("Set correct rf_bandwidth RX \n");
-    /* configurando la salida*/
+    /// configurando la salida
     struct iio_channel *chnn_device_output = iio_device_find_channel(main_dev, "voltage0", true);//output 
-    
+    int ret_output;
     ret_output = iio_channel_attr_write(chnn_device_output, "sampling_frequency", "700000");
     if (ret_output < 0) {
        perror("Error setting sampling_frequency rate TX : "); 
@@ -86,7 +95,8 @@ int main(){
     }
     //else printf("Set correct hardwaregain TX  \n");
 
-    /*para ver todos los atributos de un canal
+
+  /*   para ver todos los atributos de un canal
     int attr_count = iio_channel_get_attrs_count(chnn_device_input);
            
             printf("Channel has %d attributes:\n", attr_count);
@@ -170,11 +180,25 @@ int main(){
 	}
     
     double freq = samplingRate/16.0;
+    
     int nSamples     = 4096;
     int N = nSamples;//1048575;//1024;
-    //double pulseWidth = 0.5;
+  
     complexExp(txSignal, N, freq, samplingRate);
     //void generatePulse(double *signal, int N, double pulseWidth, double Fs)
+    double signal[N];
+    //double pulseWidth = 0.1; // 0.1 seconds
+    //double Fs = 1000; // Sampling frequency of 1000 Hz
+    generatePulse(signal, N);
+
+    // for (int i = 0; i < 10; i++) {
+    //     printf("shaped_signal[%d] = %f\n", i, signal[i]);
+    // }
+    // // //     signal_i[i] = 0;
+    // //     signal_q[i] = 0;
+    //     printf("signal_pulse[%d] = %f\n", i,signal[i]);
+    // //     printf("shaped_signal[%d] = %f\n", i,signal_q[i]);
+    
 
 
     ssize_t nbytes_tx;
@@ -182,36 +206,119 @@ int main(){
 	ptrdiff_t p_inc;
     int increm = 0;
    
-    //printf("Transmitiendo ... buffer ciclico \n");
-    nbytes_tx = iio_buffer_push(txbuf);// solo es valida para buffer de salida.
-    if (nbytes_tx < 0) { 
-        printf("Error pushing buf %d\n", (int) nbytes_tx); 
-     //   shutdown(); 
-    }
-    // WRITE: Get pointers to TX buf and write IQ to TX buf port 0
-	p_inc = iio_buffer_step(txbuf);
-	p_end = iio_buffer_end(txbuf);
+    printf("Transmitiendo ... buffer ciclico \n");
+     nbytes_tx = iio_buffer_push(txbuf);// solo es valida para buffer de salida.
+     if (nbytes_tx < 0) { 
+         printf("Error pushing buf %d\n", (int) nbytes_tx); 
+      //   shutdown(); 
+     }
+     // WRITE: Get pointers to TX buf and write IQ to TX buf port 0
+	 p_inc = iio_buffer_step(txbuf);
+	 p_end = iio_buffer_end(txbuf);
    
     for (p_dat = (char *)iio_buffer_first(txbuf, tx0_i); p_dat < p_end; p_dat += p_inc) {
-        ((int16_t*)p_dat)[0] =  (int16_t)txSignal[increm].re; // Real (I)
-        ((int16_t*)p_dat)[1] = (int16_t)txSignal[increm].im; // Imag (Q)
-        increm = increm + 1;
-        if(increm == 4095){
-            increm = 0;
-        }
-    }
+         //((int16_t*)p_dat)[0] =  (int16_t)txSignal[increm].re; // Real (I)
+         //((int16_t*)p_dat)[1] = (int16_t)txSignal[increm].im; // Imag (Q)
+        
+         ((int16_t*)p_dat)[0] = signal[increm];
+         ((int16_t*)p_dat)[1] =(int16_t)0;// (int16_t)(1*pow(2, 14));//signal[increm];
+         
+         //((int16_t*)p_dat)[1] = (int16_t)0;
+          increm = increm + 1;
+          if(increm == 4095){
+              increm = 0;
+          }
+     }
     
-    //while (!stop);
-    sleep(10);
+    //  while (!stop) {
+    //     ssize_t nbytes;
+    //     char *pbuf;
+        
+    //     nbytes = iio_buffer_push(txbuf);
+    //     if (nbytes < 0) {
+    //         printf("Error al empujar los datos al búfer de salida.\n");
+    //         break;
+    //     }
+        
+    //     pbuf = (char *)iio_buffer_start(txbuf);
+        
+    //     // Generar el pulso
+    //     memset(pbuf,1.0* pow(2, 14) , nbytes);  //0xFF Configurar todos los valores en 0xFF (pulso activado)
+        
+    //     usleep(10000);  // Esperar 10 ms
+        
+    //     memset(pbuf, 0x00, nbytes);  // Configurar todos los valores en 0x00 (pulso desactivado)
+        
+    //     usleep(1000000);  // Esperar 1 segundo
+    // }
+    
+    while (!stop);
+    //sleep(5);
     free(txSignal);
     //printf("== Finish Sdr_1 ==\n");
     iio_channel_disable(tx0_i);
     iio_channel_disable(tx0_q);
     iio_buffer_destroy(txbuf);
     iio_context_destroy(ctx);
+    printf("Fin\n");
     return 0;
 }
 
+
+void generatePulse(double *signal, int N) {
+    // N: Number of samples
+    // pulseWidth: Width of the pulse in seconds
+    // Fs: Sampling frequency in Hz
+    
+    //double Tsamp = 1/Fs;
+    
+
+    //int pulseSamples = pulseWidth * Fs;
+    int pulseWidth = 4;//: Width of the pulse in seconds
+
+    int f = 0;
+    for (int n = 0; n < N; n++) {
+        //if(n<10)printf("f:%d\n",f);
+        if ( (f >= 0) && (f < pulseWidth)  ) {
+            signal[n] = 0.0;
+            //if(n<10)printf("f entro 2:%d\n",f);
+        }
+        else if ( (f >= 4 ) && (f < (pulseWidth * 2) ) ) {
+            
+            signal[n] = 1.0* pow(2, 14);
+            //if(n<10)printf("f entro 3:%d\n",f);
+            
+        }
+        f ++;
+        if (f == (pulseWidth * 2)) f = 0;
+         //if(n<10)printf("f3:%d\n",f);
+    }
+}
+
+void applyRaisedCosineFilter(double* pulse_signal, int signal_length, double alpha, int oversampling_factor, double* shaped_signal) {
+    int num_taps = FILTER_LENGTH;
+    double Ts = 1.0 / oversampling_factor;
+    double t;
+    double h[FILTER_LENGTH];
+    
+    for (int n = -num_taps/2; n <= num_taps/2; n++) {
+        t = n * Ts;
+        if (fabs(t / Ts) == 1 / (2 * alpha)) {
+            h[n + num_taps/2] = (alpha / (2 * M_PI * Ts)) * sin(M_PI * t / Ts) / (M_PI * t / Ts);
+        } else {
+            h[n + num_taps/2] = (sin(M_PI * t / Ts) / (M_PI * t / Ts)) * cos(2 * M_PI * alpha * t / Ts) / (1 - pow(2 * alpha * t / Ts, 2));
+        }
+    }
+    
+    for (int i = 0; i < signal_length; i++) {
+        shaped_signal[i] = 0.0;
+        for (int j = 0; j < num_taps; j++) {
+            if (i - j >= 0) {
+                shaped_signal[i] += pulse_signal[i - j] * h[j];
+            }
+        }
+    }
+}
 
 void complexExp(complex_t *signal, int N, double Fc, double Fs) {
     // N : Number of samples to transmit at once
@@ -231,80 +338,4 @@ void complexExp(complex_t *signal, int N, double Fc, double Fs) {
     //for (int i = 0; i < 11; i++) {
     //    printf("txSignal[%d] = (%f, %f)\n", i, (signal[i].re ), (signal[i].im));
     //}
-}
-
-
-
-int read_config() {
-    FILE *archivo;
-    //char linea[100];
-
-    // Abre el archivo en modo de lectura ("r")
-    archivo = fopen("transmition_config.txt", "r");
-
-    // Comprueba si el archivo se abrió correctamente
-    if (archivo == NULL) {
-        printf("No se pudo abrir el archivo 2.\n");
-        return 1;
-    }
-
-    // Lee el archivo línea por línea
-    //int count = 0;
-    
-    //char buffer[100]
-    // while (fgets(linea, sizeof(linea), archivo) != NULL) {
-    //     printf("%s", linea);  // Imprime la línea leída
-    //     if(count !=0 ){
-    //         buffer[count] linea;  
-    //     }
-    //     count++;
-    // }
-    // Lee el archivo línea por línea y guarda cada línea en el arreglo
-    int num_lines = 8;
-    char linea[100];
-    char *lines[num_lines];
-    
-    for (int i = 0; i < num_lines; i++) {
-        if (fgets(linea, sizeof(linea), archivo) != NULL) {
-            // Elimina el carácter de nueva línea si existe
-            size_t linea_length = strlen(linea);
-            if (linea[linea_length - 1] == '\n') {
-                linea[linea_length - 1] = '\0';
-                linea_length--;
-            }
-            // Copia la línea al arreglo
-            lines[i] = malloc(linea_length + 1);
-           
-            strcpy(lines[i], linea);
-        } else {
-            printf("El archivo no tiene suficientes líneas.\n");
-            break;
-        }
-        
-    }
-
-    // Cierra el archivo
-    fclose(archivo);
-    // Separar y mostrar las líneas
-    for (int i = 0; i < num_lines; i++) {
-        //printf("%s\n", lines[i]);  // Imprime la línea leída
-
-        char *key, *value;
-        key = strtok(lines[i], " ");
-        value = strtok(NULL, " ");
-
-        if (key != NULL && value != NULL) {
-            printf("%s %s \n", key,value);
-
-        } else {
-            printf("Error al separar la línea.\n");
-        }
-    }
-
-    // Liberar la memoria asignada
-    for (int i = 0; i < num_lines; i++) {
-        free(lines[i]);
-    }
-    
-    return 0;
 }
