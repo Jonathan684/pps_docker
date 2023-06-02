@@ -1,0 +1,5 @@
+sampling_frequency 1000000
+rf_bandwidth 16000000
+gain_control_mode manual
+hardwaregain 70
+frequency 2000000000

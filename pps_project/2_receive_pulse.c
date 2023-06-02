@@ -30,7 +30,23 @@ void handle_sig(int sig)
     - 
 */
 void complexExp(complex_t *signal, int N, double Fc, double Fs);
+int num_lines();
+int read_config(char *config[], char *values[]);
+
 int main(){
+    
+    int num_linea = num_lines();
+    char *config[num_linea];
+    char *values[num_linea];
+
+    read_config(config,values);
+    
+    // Imprimir los arreglos separados
+    // for (int i = 0; i < num_linea; i++) {
+    //     printf("Attr rx: %s, Value: %s\n", config[i], values[i]);
+    // }
+
+
     FILE *fptr;
     // Open file for writing
     fptr = fopen("output_pulse.txt", "w");
@@ -40,9 +56,7 @@ int main(){
 
     // Write to stdout (will be redirected to file)
     //printf("Hello, world!\n");
-
     stop = false;
-
     signal(SIGINT, handle_sig);
     struct iio_context *ctx = NULL;
     ctx = iio_create_default_context();
@@ -51,20 +65,18 @@ int main(){
         return -1;
     }
 
-    
     struct iio_device *main_dev;
     struct iio_device *dev_rx;
-
     struct iio_channel *rx0_i, *rx0_q;
-
     struct iio_buffer *rxbuf;
-
+    int ret_input;
+    
     main_dev = iio_context_find_device(ctx, "ad9361-phy");
     //configuracion de la entrada
     
     //iio_channel_enable(chnn_device_input);
     struct iio_channel *chnn_device_input = iio_device_find_channel(main_dev, "voltage0", false);//input 
-    int ret = iio_channel_attr_write(chnn_device_input, "sampling_frequency", "700000");//3999999
+    int ret = iio_channel_attr_write(chnn_device_input, config[0], values[0]); //sampling_frequency /*RX Baseband rate 5000000=5 MSPS  */
     if (ret < 0) {
        perror("Error setting sampling_frequency rate RX: "); 
         return ret;
@@ -72,92 +84,35 @@ int main(){
     //else printf("Set correct sampling_frequency RX \n");
     
 
-    int ret2 = iio_channel_attr_write(chnn_device_input, "rf_bandwidth", "16000000");//3999999
-    if (ret2 < 0) {
+    ret_input = iio_channel_attr_write(chnn_device_input,  config[1], values[1]);//rf_bandwidth 16000000
+    if (ret_input < 0) {
        perror("Error setting rf_bandwidth rate RX: "); 
-        return ret2;
+        return ret_input;
     }
     //else printf("Set correct rf_bandwidth RX \n");
     
-    /// configurando la salida
-    struct iio_channel *chnn_device_output = iio_device_find_channel(main_dev, "voltage0", true);//output 
-    int ret_output;
-    ret_output = iio_channel_attr_write(chnn_device_output, "sampling_frequency", "700000");
-    if (ret_output < 0) {
-       perror("Error setting sampling_frequency rate TX : "); 
-        return ret_output;
+    ret_input = iio_channel_attr_write(chnn_device_input,  config[2], values[2]);//gain_control_mode manual  Receive path AGC Options: slow_attack, fast_attack, manual
+    if (ret_input < 0) {
+       perror("Error setting gain_control_mode rate RX: "); 
+        return ret_input;
     }
-    //else printf("Set correct sampling_frequency TX  \n");
-    ret_output = iio_channel_attr_write(chnn_device_output, "rf_bandwidth", "16000000");
-    if (ret_output < 0) {
-       perror("Error setting rf_bandwidth rate TX: "); 
-        return ret_output;
-    }
-    //else printf("Set correct rf_bandwidth TX  \n");
+    //else printf("Set correct gain_control_mode RX  \n");
 
-    ret_output = iio_channel_attr_write(chnn_device_output, "hardwaregain", "-40");//3999999
-    if (ret_output < 0) {
-       perror("Error setting hardwaregain rate TX: "); 
-        return ret_output;
-    }
-    //else printf("Set correct hardwaregain TX  \n");
-
-    // printf("========================================\n"); 
-    
-    // int attr_count = iio_channel_get_attrs_count(chnn_device_input);
-           
-    //         printf("Channel has %d attributes:\n", attr_count);
-    //         // print attribute names and values
-    //         for (int i = 0; i < attr_count; i++) {
-    //             const char *attr = iio_channel_get_attr(chnn_device_input, i);
-    //             char val[256];
-    //             iio_channel_attr_read(chnn_device_input, attr, val, sizeof(val));
-    //             printf("  %s   = %s\n", attr,val);
-    //         }
-    // printf("========================================\n"); 
-     
-
-
-    double rx_hardwaregain_get;
-    double rx_hardwaregain = 10;
-
-    iio_channel_attr_write_double(chnn_device_input, "hardwaregain", rx_hardwaregain);
-    iio_channel_attr_read_double(chnn_device_input, "hardwaregain", &rx_hardwaregain_get);
-    
-    if (ret_output < 0) {
-       perror("Error setting hardwaregain rate TX: "); 
-        return ret_output;
+       
+    ret_input = iio_channel_attr_write(chnn_device_input,  config[3], values[3]);//Ganancia hardwaregain max 73 # Gain applied to RX path. Only applicable when gain_control_mode is set to 'manual'
+    if (ret_input < 0) {
+       perror("Error setting hardwaregain rate RX: "); 
+        return ret_input;
     }
     //else printf("Set correct hardwaregain RX  \n");
     
-    //printf("Nuevo hardwaregain : %f \n",rx_hardwaregain_get);
-    /*
-    ret_output = iio_channel_attr_write(chnn_device_input, "hardwaregain", "70");// # Gain applied to RX path. Only applicable when gain_control_mode is set to 'manual'
-    if (ret_output < 0) {
-       perror("Error setting hardwaregain rate RX: "); 
-        return ret_output;
-    }
-    else printf("Set correct hardwaregain RX  \n");
-    */
-    ret_output = iio_channel_attr_write(chnn_device_input, "gain_control_mode", "slow_attack");//# Receive path AGC Options: slow_attack, fast_attack, manual
-    if (ret_output < 0) {
-       perror("Error setting gain_control_mode rate RX: "); 
-        return ret_output;
-    }
-    //else printf("Set correct gain_control_mode RX  \n");
-    struct iio_channel *chnn_altvoltage1_output = iio_device_find_channel(main_dev, "altvoltage1", true);//output 
-    struct iio_channel *chnn_altvoltage0_output = iio_device_find_channel(main_dev, "altvoltage0", true);//output 
-    ret_output = iio_channel_attr_write(chnn_altvoltage1_output, "frequency", "710000000");//# Receive path AGC Options: slow_attack, fast_attack, manual
-    if (ret_output < 0) { 
-       perror("Error setting frecuency rate RX: "); 
-        return ret_output;
-    }
-    //else printf("Set correct frecuency RX  \n");
 
-    ret_output = iio_channel_attr_write(chnn_altvoltage0_output, "frequency", "710000000");//#
-    if (ret_output < 0) { 
+    struct iio_channel *chnn_altvoltage0_output = iio_device_find_channel(main_dev, "altvoltage0", true);//RX LO
+    
+    ret_input = iio_channel_attr_write(chnn_altvoltage0_output,  config[4], values[4]); //frequency 710000000 # RX LO frequency 710 Mhz
+    if (ret_input < 0) { 
        perror("Error setting frecuency rate RX: "); 
-        return ret_output;
+        return ret_input;
     }
     //else printf("Set correct frecuency RX  \n");
     /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -194,13 +149,13 @@ int main(){
 
     double signal_i[nSamples];
     double signal_q[nSamples];
-    for (int i = 0; i < nSamples; i++) {
+    //for (int i = 0; i < nSamples; i++) {
     //     //printf("shaped_signal[%d] = %f\n", i, signal[i]);
     //     signal_i[i] = 0;
     //     signal_q[i] = 0;
     //     printf("shaped_signal[%d] = %f\n", i,signal_i[i]);
     //     printf("shaped_signal[%d] = %f\n", i,signal_q[i]);
-     }
+    // }
 
 	char *p_dat, *p_end;
 	ptrdiff_t p_inc;
@@ -243,22 +198,87 @@ int main(){
              else printf(" %f %fj", signal_q[i] , signal_i[i]);
          }
      }
-     printf("]\n");
-
-
-    free(rxSignal);
-    
+    printf("]\n");
     
     iio_channel_disable(rx0_i);
     iio_channel_disable(rx0_q);
     iio_buffer_destroy(rxbuf);
-
     iio_context_destroy(ctx);
+    free(rxSignal);
     fclose(fptr);
     //freopen("/dev/tty", "w", stdout);
     return 0;
 }
 
+int read_config(char *config[], char *values[]) {
+    FILE *archivo;
+    // Abre el archivo en modo de lectura ("r")
+    archivo = fopen("receive_config.txt", "r");
+    // Comprueba si el archivo se abrió correctamente
+    if (archivo == NULL) {
+        printf("No se pudo abrir el archivo.\n");
+        exit(EXIT_FAILURE);
+
+    }
+    int num_linea = num_lines();
+    //printf("num_linea : %d\n",num_linea);
+    char *lines[num_linea];
+
+    char linea[100];
+    // Lee el archivo línea por línea y guarda cada línea en el arreglo
+    for (int i = 0; i < num_linea; i++) {
+        if (fgets(linea, sizeof(linea), archivo) != NULL) {
+            size_t linea_length = strlen(linea);
+            if (linea[linea_length - 1] == '\n') {
+                linea[linea_length - 1] = '\0';
+                linea_length--;
+            }
+            // Copia la línea al arreglo
+            lines[i] = malloc(linea_length + 1);
+           strcpy(lines[i], linea);
+        } else {
+            printf("El archivo no tiene suficientes líneas.\n");
+            break;
+        }
+    }
+
+    for (int i = 0; i < num_linea; i++) {
+        //printf("%s\n", lines[i]);  // Imprime la línea leída
+        char *key, *value;
+        key = strtok(lines[i], " ");
+        value = strtok(NULL, " ");
+
+        if (key != NULL && value != NULL) {
+            //printf("%s %s \n", key,value);
+            config[i] = key;
+            values[i] = value;
+        } else {
+            printf("Error al separar la línea.\n");
+        }
+    }
+    rewind(archivo); // Vuelve al inicio del archivo
+    fclose(archivo);
+    return 0;
+}
+
+int num_lines(){
+     FILE *archivo;
+    // Abre el archivo en modo de lectura ("r")
+    archivo = fopen("receive_config.txt", "r");
+    // Comprueba si el archivo se abrió correctamente
+    if (archivo == NULL) {
+        printf("No se pudo abrir el archivo.\n");
+        return -1;
+    }
+    // Lee el archivo línea por línea
+    char linea[256];
+    int num_lines = 0;
+    while (fgets(linea, sizeof(linea), archivo) != NULL) {
+         num_lines++;
+    }
+    rewind(archivo); // Vuelve al inicio del archivo
+    return num_lines;
+}
 
 void complexExp(complex_t *signal, int N, double Fc, double Fs) {
     // N : Number of samples to transmit at once
@@ -279,13 +299,6 @@ void complexExp(complex_t *signal, int N, double Fc, double Fs) {
     //    printf("angle cos : %f\n",signal[n].re);
     //    printf("angle sin : %f\n",signal[n].im);
     }
-
-  
-
-
-
-
-
     //printf("txSignal:\n");
     //for (int i = 0; i < 11; i++) {
     //    printf("txSignal[%d] = (%f, %f)\n", i, (signal[i].re ), (signal[i].im));

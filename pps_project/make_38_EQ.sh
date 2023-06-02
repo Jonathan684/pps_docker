@@ -13,11 +13,11 @@ echo "====================================================="
 # sshpass -p "analog" ssh -t root@192.168.1.37  "cd /jonathan/; exec \$SHELL --login"
 
 # CARPETA DE TRABAJO /Jonathan
-sshpass -p "analog" scp transmition_config.txt root@192.168.1.37:/jonathan/
-sshpass -p "analog" scp 1_transmit_pulse root@192.168.1.37:/jonathan/
+sshpass -p "analog" scp transmition_config.txt root@192.168.1.38:/jonathan/
+sshpass -p "analog" scp 1_transmit_pulse root@192.168.1.38:/jonathan/
 sshpass -p "analog" scp receive_config.txt root@192.168.1.38:/jonathan/
 sshpass -p "analog" scp 2_receive_pulse root@192.168.1.38:/jonathan/
-echo "Ejecutando"
+echo "ejecutar"
 sshpass -p "analog" ssh -t -f root@192.168.1.37 "cd /jonathan/; exec ./1_transmit_pulse"
 sshpass -p "analog" ssh -t root@192.168.1.38 "cd /jonathan/; exec ./2_receive_pulse"
 
