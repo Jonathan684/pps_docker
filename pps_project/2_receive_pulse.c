@@ -200,6 +200,13 @@ int main(){
      }
     printf("]\n");
     
+    //finalizamos cambiando la frecuencia
+    ret_input = iio_channel_attr_write(chnn_altvoltage0_output,  "frequency", "950000000"); //frequency 710000000 # RX LO frequency 710 Mhz
+    if (ret_input < 0) { 
+       perror("Error setting frecuency rate RX: "); 
+        return ret_input;
+    }
+    
     iio_channel_disable(rx0_i);
     iio_channel_disable(rx0_q);
     iio_buffer_destroy(rxbuf);

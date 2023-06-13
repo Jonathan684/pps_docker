@@ -198,10 +198,15 @@ int main(){
     // }
     
     while (!stop);
-    //sleep(20);                                                               710000000
+    //sleep(10);                                                               //710000000
     ret_output = iio_channel_attr_write(chnn_altvoltage1_output, "frequency", "710000000");//# Frecuencia de la portadora 710000000
     if (ret_output < 0) { 
        perror("Error setting frecuency rate TX: [Transmisor] frecuencia portadora"); 
+        return ret_output;
+    }
+    ret_output = iio_channel_attr_write(chnn_device_output,"hardwaregain", "-89");//hardwaregain -10
+    if (ret_output < 0) {
+       perror("Error setting hardwaregain rate TX: "); 
         return ret_output;
     }
     memset(signal, 0x00, 4096);
