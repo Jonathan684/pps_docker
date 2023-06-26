@@ -68,14 +68,19 @@ void open_out(){
     // Redirect stdout to the file
     freopen("output_pulse.txt", "w", stdout);
 }
-int main(){
 
-    //open_out();
+int main(){
+    //printf("configurando \n");
+
+    open_out();
     stop = false;
     signal(SIGINT, handle_sig);
+    //printf("configurando cx\n");
     creando_contexto();
+    //printf("configurando tx\n");
     configuracion_tx();
-    //configuracion_rx();
+    //printf("configurando rx\n");
+    configuracion_rx();
     //double samplingRate = 16000000.0;
     //size_t TxBufferSize     = 1048574;
     size_t TxBufferSize     = 1048575 ;//4096 * 171;//tamaño maximo permitido 409600
@@ -84,15 +89,15 @@ int main(){
         perror("Could not create TX buffer");
         iio_context_destroy(ctx);
     }
-    //size_t RxBufferSize     = 4096 * 171;//tamaño maximo permitido 409600
+    size_t RxBufferSize     = 4096 * 171;//tamaño maximo permitido 409600
     
-    // rxbuf = iio_device_create_buffer(dev_rx, RxBufferSize, true);//Paso :0 Fin :-1225617408  Paso :-1225617408 Fin :-1225617408
-    // if (!rxbuf) {
-    //     perror("Could not create rxbuf buffer");
-    //     iio_context_destroy(ctx);
-    // }  
+    rxbuf = iio_device_create_buffer(dev_rx, RxBufferSize, true);//Paso :0 Fin :-1225617408  Paso :-1225617408 Fin :-1225617408
+    if (!rxbuf) {
+        perror("Could not create rxbuf buffer");
+        iio_context_destroy(ctx);
+    }  
     //Funcion a transmitir
-    //size_t samples_count = 1048575;// 4096 ;//1048575;
+    size_t samples_count = 1048575;// 4096 ;//1048575;
     //double pulse_signal[SIGNAL_LENGTH];  // Your pulse signal
         // complex_t *txSignal = (complex_t *) malloc(samples_count * sizeof(complex_t));
         // if (txSignal == NULL) {
@@ -105,49 +110,53 @@ int main(){
     //complexExp(txSignal, N, freq, samplingRate);
     double signal[N];
     generatePulse(signal, N);
-    // for (int i = 0; i < 100; i++) {
-    //      printf("shaped_signal[%d] = %f\n", i, signal[i]);
+    // for (int i = 0; i < 10; i++) {
+    //     printf("shaped_signal[%d] = %f\n", i, signal[i]);
     // }
+    // // //     signal_i[i] = 0;
+    // //     signal_q[i] = 0;
+    //     printf("signal_pulse[%d] = %f\n", i,signal[i]);
+    // //     printf("shaped_signal[%d] = %f\n", i,signal_q[i]);
     
     ssize_t nbytes_tx;
 	char *p_dat, *p_end;
 	ptrdiff_t p_inc;
     int increm = 0;
-    //Funcion a recibir
-    double signal_i[nSamples];
-    double signal_q[nSamples];
+    
     /*------------*/
     //int nSamples     = 4096 ;
+    samples_count = nSamples ;
     //printf("Transmitiendo ... buffer ciclico \n");
     nbytes_tx = iio_buffer_push(txbuf);// solo es valida para buffer de salida.
     if (nbytes_tx < 0) { 
         printf("Error pushing buf %d\n", (int) nbytes_tx); 
     //   shutdown(); 
     }
+     // WRITE: Get pointers to TX buf and write IQ to TX buf port 0
+	
+    //Funcion a recibir
+    double signal_i[nSamples];
+    double signal_q[nSamples];
+	complex_rx *rxSignal = (complex_rx *) malloc(samples_count * sizeof(complex_rx));
+	if (rxSignal == NULL) {
+	    printf("Error allocating memory\n");
+	    return 1;
+	}
 
-    // for (int i = 0; i < nSamples; i++) {
-    //     printf("%f",signal[i]);
-    // }
     /* ---------- TRANSMITIENDO ----------------- */
     p_inc = iio_buffer_step(txbuf);
 	p_end = iio_buffer_end(txbuf);
     for (p_dat = (char *)iio_buffer_first(txbuf, tx0_i); p_dat < p_end; p_dat += p_inc) {
-         //((int16_t*)p_dat)[0] =  (int16_t)txSignal[increm].re; // Real (I)
-         //((int16_t*)p_dat)[1] = (int16_t)txSignal[increm].im; // Imag (Q)
-        
-         ((int16_t*)p_dat)[0] = signal[increm];
-         ((int16_t*)p_dat)[1] =(int16_t)0;// (int16_t)(1*pow(2, 14));//signal[increm];
-         
-         //((int16_t*)p_dat)[1] = (int16_t)0;
+        ((int16_t*)p_dat)[0] = signal[increm] ;//1 *pow(2, 14); //signal[increm];
+        ((int16_t*)p_dat)[1] = (int16_t)0;//1 *pow(2, 14);//(int16_t)0;// (int16_t)(1*pow(2, 14));//signal[increm];
+        //((int16_t*)p_dat)[1] = (int16_t)0;
           increm = increm + 1;
           if(increm == 4095){
               increm = 0;
           }
-     }
+    }
     //printf("A recibir \n");
     //sleep(1);
-    printf("Transmitiendo\n");
-    while (!stop);
  /* ---------- RECIBIENDO ----------------- */
     
     iio_buffer_refill(rxbuf);
@@ -167,15 +176,17 @@ int main(){
 	}
     /*----------------------------------------*/
     
+    
+    
+    
     // for (int i = 0; i < n_Sample; i++) {
     //     //printf("shaped_signal[%d] = %f\n", i, signal[i]);
     //     printf("pulse_i[%d] = %f\n", i,signal_i[i]);
     //     printf("pulse_q[%d] = %f\n", i,signal_q[i]);
     // }
     //nSamples = 30;
-    
     printf("[");
-    for (int i = 0; i < nSamples; i++) {
+     for (int i = 0; i < nSamples; i++) {
         
          if(i < (nSamples-1)){
              if(signal_i[i]>=0){
@@ -194,7 +205,6 @@ int main(){
     printf("]\n");
     
     // Finalizamos cambiando la frecuencia
-    /*
     int ret_input = iio_channel_attr_write(chnn_altvoltage0_output,  "frequency", "950000000"); //frequency 710000000 # RX LO frequency 710 Mhz
     if (ret_input < 0) { 
        perror("Error setting frecuency rate RX: "); 
@@ -213,7 +223,7 @@ int main(){
         perror("Error setting hardwaregain rate TX: "); 
          return ret_output;
      }
-    */
+
     memset(signal, 0x00, 4096);
     // free(txSignal);
     // free(rxSignal);
@@ -226,8 +236,7 @@ int main(){
     iio_channel_disable(tx0_i);
     iio_channel_disable(tx0_q);
     iio_context_destroy(ctx);
-   
-    //fclose(fptr);
+    fclose(fptr);
     //printf("Fin\n");
     return 0;
 }
@@ -262,8 +271,6 @@ int configuracion_tx(){
 
     read_config_tx(config,values,num_linea,archivo);
     // Imprimir los arreglos separados
-   // printf("------ configuracion_tx ------- \n");
- 
     // for (int i = 0; i < num_linea; i++) {
     //     printf("Attr : %s, Value: %s\n", config[i], values[i]);
     // }
@@ -328,7 +335,6 @@ int configuracion_rx(){
     char *values[num_linea];
     read_config_rx(config,values,num_linea,archivo);
     // Imprimir los arreglos separados
-    
     // for (int i = 0; i < num_linea; i++) {
     //     printf("Attr rx: %s, Value: %s\n", config[i], values[i]);
     // }
@@ -351,35 +357,20 @@ int configuracion_rx(){
         return ret_input;
     }
     //else printf("Set correct rf_bandwidth RX \n");
-    /*
-     * gain_control_mode 
-     * fast_attack
-     * manual
-     * slow_attack
-     * hybrid
-     * cat in_voltage_gain_control_mode_available
-    */
+    
+    ret_input = iio_channel_attr_write(chnn_device_input,  config[2], values[2]);//gain_control_mode manual  Receive path AGC Options: slow_attack, fast_attack, manual
+    if (ret_input < 0) {
+       perror("Error setting gain_control_mode rate RX: "); 
+        return ret_input;
+    }
     //else printf("Set correct gain_control_mode RX  \n");
     
-    //printf("Antes de modificar %d\n",strcmp(values[2],"manual"));
-    //printf("Antes de modificar ->%s<-\n",values[2]);
-    
     /* En modo fast_attack no se configura */
-    if(!strcmp(values[2],"manual")){
-        ret_input = iio_channel_attr_write(chnn_device_input,  config[2], values[2]);//Ganancia hardwaregain max 73 # Gain applied to RX path. Only applicable when gain_control_mode is set to 'manual'
-        if (ret_input < 0) {
-            perror("Error setting hardwaregain rate RX: "); 
-            return ret_input;
-        }
-     }
-    //else printf("Set correct hardwaregain RX  \n");
-    
-     ret_input = iio_channel_attr_write(chnn_device_input,  config[3], values[3]);//Ganancia hardwaregain max 73 # Gain applied to RX path. Only applicable when gain_control_mode is set to 'manual'
-     if (ret_input < 0) {
-         perror("Error setting hardwaregain rate RX: "); 
-         return ret_input;
-     }
-     
+    // ret_input = iio_channel_attr_write(chnn_device_input,  config[3], values[3]);//Ganancia hardwaregain max 73 # Gain applied to RX path. Only applicable when gain_control_mode is set to 'manual'
+    // if (ret_input < 0) {
+    //    perror("Error setting hardwaregain rate RX: "); 
+    //     return ret_input;
+    // }
     //else printf("Set correct hardwaregain RX  \n");
     
     chnn_altvoltage0_output = iio_device_find_channel(main_dev, "altvoltage0", true);//RX LO
@@ -389,7 +380,6 @@ int configuracion_rx(){
         return ret_input;
     }
     //else printf("Set correct frecuency RX  \n");
-    //printf("--> %s %s\n",  config[4], values[4]);
 
     /* Dispositivo RECEPTOR */
     dev_rx = iio_context_find_device(ctx, "cf-ad9361-lpc"); //dispositivo para enviar
@@ -450,11 +440,11 @@ int read_config_tx(char *config[], char *values[],int num_linea,FILE *archivo) {
 
 int read_config_rx(char *config[], char *values[],int num_linea,FILE *archivo) {
    
+    
     //printf("num_linea : %d\n",num_linea);
     char *lines[num_linea];
 
     char linea[100];
-  
     // Lee el archivo línea por línea y guarda cada línea en el arreglo
     for (int i = 0; i < num_linea; i++) {
         if (fgets(linea, sizeof(linea), archivo) != NULL) {
@@ -489,7 +479,6 @@ int read_config_rx(char *config[], char *values[],int num_linea,FILE *archivo) {
     }
     rewind(archivo); // Vuelve al inicio del archivo
     fclose(archivo);
-
     return 0;
 }
 

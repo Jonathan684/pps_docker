@@ -259,6 +259,7 @@ int read_config(char **lines) {
     
     for (int i = 0; i < num_lines; i++) {
         if (fgets(linea, sizeof(linea), archivo) != NULL) {
+            
             // Elimina el carácter de nueva línea si existe
             size_t linea_length = strlen(linea);
             if (linea[linea_length - 1] == '\n') {

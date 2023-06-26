@@ -2,7 +2,7 @@ CC=arm-linux-gnueabihf-gcc
 CFLAGS=-mfloat-abi=hard --sysroot=$(HOME)/pluto-0.32.sysroot -std=gnu99 -g -Wall -Wextra
 LIBS=-lpthread -liio -lm
 
-all: new
+all: tx_rx_pulse
 
 tx_rx_pulse: tx_rx_pulse
 	$(CC) $(CFLAGS) -o tx_rx_pulse tx_rx_pulse.c $(LIBS)
@@ -10,19 +10,7 @@ tx_rx_pulse: tx_rx_pulse
 tx_rx_pulse.o: tx_rx_pulse.c
 	$(CC) $(CFLAGS) -c tx_rx_pulse.c 
 
-trans_recep: trans_recep
-	$(CC) $(CFLAGS) -o trans_recep trans_recep.c $(LIBS)
-
-trans_recep.o: trans_recep.c
-	$(CC) $(CFLAGS) -c trans_recep.c 
-
-new: new
-	$(CC) $(CFLAGS) -o new new.c $(LIBS)
-
-new.o: new.c
-	$(CC) $(CFLAGS) -c new.c 
-
 clean:
-	rm  -f *.o new output_pulse.txt
+	rm  -f *.o tx_rx_pulse output_pulse.txt
 	
 #rm  -f *.o  sdr_1 sdr_2 prueba_33

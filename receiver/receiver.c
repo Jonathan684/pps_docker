@@ -61,7 +61,7 @@ int main(){
     struct iio_buffer *rxbuf;
     int ret_rx;
 
-    struct iio_device *main_dev = iio_context_find_device(ctx, "ad9361-phy");
+   main_dev = iio_context_find_device(ctx, "ad9361-phy");
     const void  *filename = "filter.txt";
     int ret = iio_device_attr_write_raw(main_dev, "filter_fir_config", filename, strlen(filename) + 1);
     if (ret < 0) {

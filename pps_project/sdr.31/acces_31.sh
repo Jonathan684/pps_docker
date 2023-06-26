@@ -1,1 +1,1 @@
-sshpass -p "analog" ssh -l root 192.168.1.31 "cd /jonathan/; exec \$SHELL --login"
+sshpass -p "analog" ssh -l root 192.168.1.31 "cd /jonathan/; exec \$SHELL --login"ssh -l root 192.168.1.31

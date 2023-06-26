@@ -1,5 +1,5 @@
 sampling_frequency 1000000
 rf_bandwidth 10000000
-gain_control_mode manual
+gain_control_mode fast_attack
 hardwaregain 70
 frequency 2000000000
