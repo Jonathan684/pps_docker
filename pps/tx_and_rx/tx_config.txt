@@ -1,4 +1,4 @@
-sampling_frequency 7000000
+sampling_frequency 700000
 rf_bandwidth 20000000
-hardwaregain -10
-frequency 2000000000
+hardwaregain 0
+frequency 3500000000
