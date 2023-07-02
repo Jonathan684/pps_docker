@@ -1,4 +1,4 @@
-sampling_frequency 700000
+sampling_frequency 7000000
 rf_bandwidth 20000000
 gain_control_mode fast_attack
 hardwaregain 73
