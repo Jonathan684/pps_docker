@@ -56,7 +56,7 @@ int main(){
     //printf("INICIO \n");
     stop = false;
     signal(SIGINT, handle_sig);
-    int nSamples     = (pow(2, 16)-1);//20000;// pow(2, 12); //131071;// pow(2, 16);// 10000 ;//4096 ;//100000 ;//4096;//1048575;//1024;
+    int nSamples     = (pow(2, 17)-1);//20000;// pow(2, 12); //131071;// pow(2, 16);// 10000 ;//4096 ;//100000 ;//4096;//1048575;//1024;
     double signal[nSamples];
     ssize_t nbytes_tx;
 	char *p_dat, *p_end;
@@ -96,10 +96,10 @@ int main(){
         increm = increm + 1;
         if(increm == (nSamples-1))increm = 0;
     }
-    sleep(3);
+    //sleep(5);
     //usleep(100000); /*estabilizar la señal transmitida antes de recibir*/
     /*recibir*/
-    //nSamples = 20000;
+    //nSamples = (pow(2, 14)-1);//40000;
     double signal_i[nSamples];
     double signal_q[nSamples];
     //printf("config P1 \n");
@@ -107,37 +107,25 @@ int main(){
     increm = 0;
     p_inc = iio_buffer_step(rxbuf);
 	p_end = iio_buffer_end(rxbuf);
+    //sleep(5);
     //printf("RECIBIR \n");
     //inicio = clock();
     for (p_dat = (char *)iio_buffer_first(rxbuf, rx0_i); p_dat < p_end; p_dat += p_inc) {     
 
         signal_q[increm] = (double) (((int16_t*)p_dat)[0] / pow(2, 14)); //i real
         signal_i[increm] = (double) (((int16_t*)p_dat)[1] / pow(2, 14)); //q ima
-       
-        //  if(((signal_q[increm])>0) && (flag == 1) && (increm > 2900)){
-        //     inicio = clock();
-        //     //signal_q[increm] = 888888;
-        //     printf("1: %d\n",increm);  
-        //      flag = 2;
-        //  }
-        //  if((signal_q[increm] < 0) && (flag == 2)){
-        //     fin = clock();
-        //     //signal_q[increm] = 9999999;
-        //     printf("2: %d\n",increm);  
-        //      flag = 3;
-        //  }
         increm = increm + 1;
-        if(increm == (nSamples - 1) )increm = 0;//break;
+        if(increm == (nSamples - 1) )increm = 0; //break;//increm = 0;
 	}
     
-    //printf("FIN \n");
+    // printf("FIN \n");
     // Calcula el tiempo transcurrido en segundos
-    //tiempo_transcurrido = (double)(fin - inicio)/ CLOCKS_PER_SEC;
+    // tiempo_transcurrido = (double)(fin - inicio)/ CLOCKS_PER_SEC;
 
-    // Imprime el tiempo transcurrido
-    //printf("Tiempo transcurrido: %f segundos\n", tiempo_transcurrido);
+    // //Imprime el tiempo transcurrido
+    // printf("Tiempo transcurrido: %f segundos\n", tiempo_transcurrido);
 
-    //printf("nSamples %d \n",nSamples);
+    // printf("nSamples %d \n",nSamples);
 
     printf("[");
     for (int i = 0; i < nSamples; i++) { //nSamples
@@ -190,8 +178,8 @@ int main(){
 }
 
 void generatePulse(double *signal, int N) {
-    int Longitud_del_pulso = 1;
-    int PRI = 2;
+    int Longitud_del_pulso = 5;
+    int PRI = 10;
     int count = 0;
     int amplitud = pow(2, 14);
     for (int n = 0; n < N; n++) {
@@ -480,7 +468,7 @@ int config_tx(){
     iio_channel_enable(tx0_i);
     iio_channel_enable(tx0_q);
     //size_t TxBufferSize     = 1048574;
-    size_t TxBufferSize     = (pow(2, 17)-1);// 4096 * 171 ;//1048575 ;//4096 * 171;//tamaño maximo permitido 409600
+    size_t TxBufferSize     = (pow(2, 14)-1);// 4096 * 171 ;//1048575 ;//4096 * 171;//tamaño maximo permitido 409600
     
     txbuf = iio_device_create_buffer(dev_tx, TxBufferSize, true);//Paso :0 Fin :-1225617408  Paso :-1225617408 Fin :-1225617408
     if (!txbuf) {
@@ -552,7 +540,7 @@ int config_rx(){
 
     //size_t BufferSize     = 1048500;
     // size_t BufferSize     = pow(2, 12) ;//1048500 ;//4096;// * 171;//tamaño maximo permitido 409600
-    size_t BufferSize     = (pow(2, 17)-1);
+    size_t BufferSize     = (pow(2, 20)-1);
     rxbuf = iio_device_create_buffer(dev_rx, BufferSize, false);//Paso :0 Fin :-1225617408  Paso :-1225617408 Fin :-1225617408
     
     if (!rxbuf) {
