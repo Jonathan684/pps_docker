@@ -56,7 +56,7 @@ int main(){
     //printf("INICIO \n");
     stop = false;
     signal(SIGINT, handle_sig);
-    int nSamples     = (pow(2, 17)-1);//20000;// pow(2, 12); //131071;// pow(2, 16);// 10000 ;//4096 ;//100000 ;//4096;//1048575;//1024;
+    int nSamples     = (pow(2, 14));//20000;// pow(2, 12); //131071;// pow(2, 16);// 10000 ;//4096 ;//100000 ;//4096;//1048575;//1024;
     double signal[nSamples];
     ssize_t nbytes_tx;
 	char *p_dat, *p_end;
