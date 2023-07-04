@@ -1,1 +1,0 @@
-scp  root@192.168.1.36:/root/output.txt ../current_config

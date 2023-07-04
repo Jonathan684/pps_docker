@@ -1,1 +1,0 @@
-scp  root@192.168.1.37:/root/output.txt ../all_attr_read

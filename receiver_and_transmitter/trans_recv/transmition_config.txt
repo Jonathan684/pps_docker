@@ -1,7 +1,0 @@
-sampling_frequency 700000
-rf_bandwidth 16000000
-sampling_frequency 700000
-rf_bandwidth 16000000
-hardwaregain -40
-gain_control_mode slow_attack
-frequency 710000000

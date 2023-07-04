@@ -1,1 +1,0 @@
-ssh -t root@192.168.1.36 /tmp/input_output

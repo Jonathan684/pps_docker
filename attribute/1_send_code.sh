@@ -1,1 +1,0 @@
-scp attr_debug root@192.168.1.37:/tmp/
