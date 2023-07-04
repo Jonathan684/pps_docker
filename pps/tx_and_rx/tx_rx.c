@@ -56,7 +56,7 @@ int main(){
     //printf("INICIO \n");
     stop = false;
     signal(SIGINT, handle_sig);
-    int nSamples     = (pow(2, 14));//20000;// pow(2, 12); //131071;// pow(2, 16);// 10000 ;//4096 ;//100000 ;//4096;//1048575;//1024;
+    int nSamples     = pow(2, 12);;//20000;// pow(2, 12); //131071;// pow(2, 16);// 10000 ;//4096 ;//100000 ;//4096;//1048575;//1024;
     double signal[nSamples];
     ssize_t nbytes_tx;
 	char *p_dat, *p_end;
@@ -468,7 +468,7 @@ int config_tx(){
     iio_channel_enable(tx0_i);
     iio_channel_enable(tx0_q);
     //size_t TxBufferSize     = 1048574;
-    size_t TxBufferSize     = (pow(2, 17)-1);// 4096 * 171 ;//1048575 ;//4096 * 171;//tamaño maximo permitido 409600
+    size_t TxBufferSize     = (pow(2, 14)-1);// 4096 * 171 ;//1048575 ;//4096 * 171;//tamaño maximo permitido 409600
     
     txbuf = iio_device_create_buffer(dev_tx, TxBufferSize, true);//Paso :0 Fin :-1225617408  Paso :-1225617408 Fin :-1225617408
     if (!txbuf) {
@@ -540,7 +540,7 @@ int config_rx(){
 
     //size_t BufferSize     = 1048500;
     // size_t BufferSize     = pow(2, 12) ;//1048500 ;//4096;// * 171;//tamaño maximo permitido 409600
-    size_t BufferSize     = (pow(2, 17)-1);
+    size_t BufferSize     = (pow(2, 20)-1);
     rxbuf = iio_device_create_buffer(dev_rx, BufferSize, false);//Paso :0 Fin :-1225617408  Paso :-1225617408 Fin :-1225617408
     
     if (!rxbuf) {
