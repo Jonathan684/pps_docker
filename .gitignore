@@ -1,7 +1,7 @@
 #ignorar la carpeta .vscode
-.a_pps_test/*
-.all_attr_read/*
-.attribute/*
+/a_pps_test
+/all_attr_read
+/attribute
 .configuration/*
 .control_sdr/*
 .filter/*
