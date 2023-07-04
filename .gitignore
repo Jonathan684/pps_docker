@@ -1,19 +1,19 @@
 #ignorar la carpeta .vscode
-a_pps_test/
-all_attr_read/
-attribute/
+a_pps_test/*
+all_attr_read/*
+attribute/*
 configuration/*
-.control_sdr/*
-.filter/*
-.load_filter_0/*
-.main/*
-.original/*
-.pps_project/*
-.pulse_generator/*
-.pulso/*
-.receiver/*
-.receiver_and_transmitter/*
-.transmitter/*
+control_sdr/*
+filter/*
+load_filter_0/*
+main/*
+original/*
+pps_project/*
+pulse_generator/*
+pulso/*
+receiver/*
+receiver_and_transmitter/*
+transmitter/*
 # Ignorar todos los archivos de texto
 *.txt
 
