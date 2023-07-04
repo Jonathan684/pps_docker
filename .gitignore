@@ -2,7 +2,7 @@
 /a_pps_test
 /all_attr_read
 /attribute
-.configuration/*
+configuration/*
 .control_sdr/*
 .filter/*
 .load_filter_0/*
