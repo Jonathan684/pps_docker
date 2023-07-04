@@ -1,1 +1,0 @@
-scp send root@192.168.1.32:/tmp/

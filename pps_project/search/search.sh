@@ -1,1 +1,0 @@
-sshpass -p "analog" scp  root@192.168.1.37:/jonathan/output_pulse.txt ../pps_project
