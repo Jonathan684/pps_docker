@@ -29,13 +29,13 @@ struct iio_buffer *rxbuf;
 struct iio_channel *chnn_altvoltage1_output;
 struct iio_channel *chnn_device_output;
 
-size_t TxBufferSize     = (pow(2, 14)-1);// 4096 * 171 ;//1048575 ;//4096 * 171;//tamaño maximo permitido 409600
-size_t RxBufferSize     = (pow(2, 20)-1);
+size_t TxBufferSize     = (pow(2, 14)-1);// (pow(2, 14)-1); 4096 * 171 ;//1048575 ;//4096 * 171;//tamaño maximo permitido 409600
+size_t RxBufferSize     = (pow(2, 20)-1);//(pow(2, 20)-1);
 
-int nSamples            = (pow(2, 12)-1);//20000;// pow(2, 12); //131071;// pow(2, 16);// 10000 ;//4096 ;//100000 ;//4096;//1048575;//1024;
-int Longitud_del_pulso  = 2;
-int PRI = 4;// 4;
-
+int nSamples            = (pow(2, 12)-1);//(pow(2, 12)-1); 20000;// pow(2, 12); //131071;// pow(2, 16);// 10000 ;//4096 ;//100000 ;//4096;//1048575;//1024;
+int Longitud_del_pulso  = 1;
+int PRI = 200;// 4;
+int amplitud = (pow(2, 12));//or (pow(2, 14)); jupyter
 
 
 void handle_sig(int sig)
@@ -108,7 +108,7 @@ int main(){
     //sleep(5);
     //usleep(100000); /*estabilizar la señal transmitida antes de recibir*/
     /*recibir*/
-    //nSamples = (pow(2, 14)-1);//40000;
+    
     double signal_i[nSamples];
     double signal_q[nSamples];
     //printf("config P1 \n");
@@ -188,7 +188,7 @@ int main(){
 void generatePulse(double *signal, int N) {
     
     int count = 0;
-    int amplitud = (pow(2, 14));
+    
     for (int n = 0; n < N; n++) {
         if ( (count >= 0) && (count < Longitud_del_pulso)  ) {
             signal[n] = 1 * amplitud  ;
