@@ -29,6 +29,15 @@ struct iio_buffer *rxbuf;
 struct iio_channel *chnn_altvoltage1_output;
 struct iio_channel *chnn_device_output;
 
+size_t TxBufferSize     = (pow(2, 14)-1);// 4096 * 171 ;//1048575 ;//4096 * 171;//tamaño maximo permitido 409600
+size_t RxBufferSize     = (pow(2, 20)-1);
+
+int nSamples            = (pow(2, 12)-1);//20000;// pow(2, 12); //131071;// pow(2, 16);// 10000 ;//4096 ;//100000 ;//4096;//1048575;//1024;
+int Longitud_del_pulso  = 2;
+int PRI = 4;// 4;
+
+
+
 void handle_sig(int sig)
 {
 	printf("Waiting for process to finish... Got signal %d\n", sig);
@@ -56,7 +65,6 @@ int main(){
     //printf("INICIO \n");
     stop = false;
     signal(SIGINT, handle_sig);
-    int nSamples     = pow(2, 12);;//20000;// pow(2, 12); //131071;// pow(2, 16);// 10000 ;//4096 ;//100000 ;//4096;//1048575;//1024;
     double signal[nSamples];
     ssize_t nbytes_tx;
 	char *p_dat, *p_end;
@@ -96,6 +104,7 @@ int main(){
         increm = increm + 1;
         if(increm == (nSamples-1))increm = 0;
     }
+   
     //sleep(5);
     //usleep(100000); /*estabilizar la señal transmitida antes de recibir*/
     /*recibir*/
@@ -107,7 +116,6 @@ int main(){
     increm = 0;
     p_inc = iio_buffer_step(rxbuf);
 	p_end = iio_buffer_end(rxbuf);
-    //sleep(5);
     //printf("RECIBIR \n");
     //inicio = clock();
     for (p_dat = (char *)iio_buffer_first(rxbuf, rx0_i); p_dat < p_end; p_dat += p_inc) {     
@@ -178,10 +186,9 @@ int main(){
 }
 
 void generatePulse(double *signal, int N) {
-    int Longitud_del_pulso = 2;
-    int PRI = 4;
+    
     int count = 0;
-    int amplitud = pow(2, 14);
+    int amplitud = (pow(2, 14));
     for (int n = 0; n < N; n++) {
         if ( (count >= 0) && (count < Longitud_del_pulso)  ) {
             signal[n] = 1 * amplitud  ;
@@ -468,7 +475,7 @@ int config_tx(){
     iio_channel_enable(tx0_i);
     iio_channel_enable(tx0_q);
     //size_t TxBufferSize     = 1048574;
-    size_t TxBufferSize     = (pow(2, 14)-1);// 4096 * 171 ;//1048575 ;//4096 * 171;//tamaño maximo permitido 409600
+    
     
     txbuf = iio_device_create_buffer(dev_tx, TxBufferSize, true);//Paso :0 Fin :-1225617408  Paso :-1225617408 Fin :-1225617408
     if (!txbuf) {
@@ -540,8 +547,8 @@ int config_rx(){
 
     //size_t BufferSize     = 1048500;
     // size_t BufferSize     = pow(2, 12) ;//1048500 ;//4096;// * 171;//tamaño maximo permitido 409600
-    size_t BufferSize     = (pow(2, 20)-1);
-    rxbuf = iio_device_create_buffer(dev_rx, BufferSize, false);//Paso :0 Fin :-1225617408  Paso :-1225617408 Fin :-1225617408
+    
+    rxbuf = iio_device_create_buffer(dev_rx, RxBufferSize, false);//Paso :0 Fin :-1225617408  Paso :-1225617408 Fin :-1225617408
     
     if (!rxbuf) {
         printf("Could not create rxbuf buffer");
