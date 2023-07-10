@@ -25,3 +25,4 @@ out_voltage_sampling_frequency
 out_voltage_sampling_frequency_available
 rx_path_rates
 tx_path_rates
+out_voltage_rf_bandwidth
