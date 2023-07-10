@@ -13,9 +13,9 @@ echo "====================================================="
 echo -n > datos.txt
 #echo "====================================================="
 # CARPETA DE TRABAJO /Jonathan
-# sshpass -p "analog" scp filter_1.txt root@192.168.1.32:/jonathan/
-# sshpass -p "analog" scp filter_2.txt root@192.168.1.32:/jonathan/
-# sshpass -p "analog" scp filter_3.txt root@192.168.1.32:/jonathan/
+sshpass -p "analog" scp filter_1.txt root@192.168.1.32:/jonathan/
+sshpass -p "analog" scp filter_2.txt root@192.168.1.32:/jonathan/
+sshpass -p "analog" scp filter_3.txt root@192.168.1.32:/jonathan/
 sshpass -p "analog" scp filter_4.txt root@192.168.1.32:/jonathan/
 sshpass -p "analog" scp datos.txt root@192.168.1.32:/jonathan/
 

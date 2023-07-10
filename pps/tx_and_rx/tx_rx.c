@@ -30,14 +30,18 @@ struct iio_channel *chnn_altvoltage1_output;
 struct iio_channel *chnn_device_output;
 
 size_t TxBufferSize     = (pow(2, 14)-1);// (pow(2, 14)-1); 4096 * 171 ;//1048575 ;//4096 * 171;//tamaño maximo permitido 409600
-size_t RxBufferSize     = (pow(2, 23)-1);//(pow(2, 20)-1);
+size_t RxBufferSize     = (pow(2, 18)-1);//(pow(2, 20)-1);
 
 /* PULSE*/
 int Longitud_del_pulso  = 1;
-int PRI = 50;
-int amplitud = (pow(2, 14));// jupyter
+int PRI = 4; //Minimo 4 
+int16_t amplitude = 0x0FFF;// jupyter
+int N_rx = (pow(2, 18)-10);
 
 bool rx = true;
+
+
+int amplitud = (pow(2, 14));// jupyter
 void handle_sig(int sig)
 {
 	printf("Waiting for process to finish... Got signal %d\n", sig);
@@ -59,50 +63,30 @@ int read_config_rx(char *config[], char *values[]);
 
 int main(){
 
-    //FILE *fptr;
-    // fptr = fopen("output_pulse.txt", "w");
-    // freopen("output_pulse.txt", "w", stdout);
-    //printf("INICIO \n");
     stop = false;
     signal(SIGINT, handle_sig);
-    //double signal[n_samples_tx];
     ssize_t nbytes_tx;
 	char *p_dat, *p_end;
 	ptrdiff_t p_inc;
-    //int increm = 0;
-    /*tiempo*/
-    //int flag = 1;
-    //clock_t inicio, fin;
-    //double tiempo_transcurrido;
-    /*------*/
-    //printf("create_context \n");
     create_context();
-    //printf("config_filter \n");
     if(config_filter()<0){
        iio_context_destroy(ctx);
        return 0;
     }
-    //printf("config_tx RX \n");
     config_tx();
-    //printf("1 \n");
     if(rx == true)config_rx();
-    //printf("2 \n");
-    //generatePulse(signal, n_samples_tx);
-    //printf("config P0 \n");
     nbytes_tx = iio_buffer_push(txbuf);// solo es valida para buffer de salida.
     if (nbytes_tx < 0) printf("Error pushing buf %d\n", (int) nbytes_tx); 
     
+    /*TRANSMITIR*/
 	p_inc = iio_buffer_step(txbuf);
 	p_end = iio_buffer_end(txbuf);
     int count = 0;
-    //printf("p_end %d\n",(int)p_end);
-    //printf("p_inc %d\n",(int)p_inc);
-    
-   /*transmitir*/
+
     for (p_dat = (char *)iio_buffer_first(txbuf, tx0_i); p_dat < p_end; p_dat += p_inc) {
        if ( (count >= 0) && (count < Longitud_del_pulso)  ) {
-            ((int16_t*)p_dat)[0] =((int16_t)0x0FFF);//(1*pow(2, 14));//signal[increm];
-            ((int16_t*)p_dat)[1] =((int16_t)0x0FFF);//(1*pow(2, 14));//signal[increm];
+            ((int16_t*)p_dat)[0] = amplitude;//(1*pow(2, 14));//signal[increm];
+            ((int16_t*)p_dat)[1] = amplitude;//(1*pow(2, 14));//signal[increm];
         }
         else if ( (count >= Longitud_del_pulso ) && (count < PRI ) ) {
             ((int16_t*)p_dat)[0] =((int16_t)0x0000);
@@ -111,14 +95,11 @@ int main(){
         count ++;
         if (count == PRI) count = 0;
     }
-    //printf("p_dat %d\n",(int)p_dat);
-    //printf("p_end %d\n",(int)p_end);
-    //sleep(5);
-    //usleep(100000); /*estabilizar la señal transmitida antes de recibir*/
-    /*recibir*/
-    usleep(100000);
+    usleep(10000);
+
+    /*RECIBIR*/
     if(rx == true){
-            int N_rx = (pow(2, 14));
+            
             int I_rx = 0;
             double signal_i[N_rx];
             double signal_q[N_rx];
@@ -126,24 +107,16 @@ int main(){
             p_inc = iio_buffer_step(rxbuf);
             p_end = iio_buffer_end(rxbuf);
             
-           
-            
-            
-            // /*Recibir*/
-            //int cantidad=0;
             for (p_dat = (char *)iio_buffer_first(rxbuf, rx0_i); p_dat < p_end; p_dat += p_inc) {     
                 if(I_rx < N_rx){
                     signal_q[I_rx] = (double) (((int16_t*)p_dat)[0] );// / amplitud); //i real
                     signal_i[I_rx] = (double) (((int16_t*)p_dat)[1] );/// amplitud); //q ima
-                
                 }
                 I_rx ++;
                 if(I_rx == N_rx)I_rx = 0;
-                //}
-                //cantidad ++;
             }
 
-             FILE* archivo = fopen("datos.txt", "a"); // Abrir el archivo en modo binario
+            FILE* archivo = fopen("datos.txt", "a"); // Abrir el archivo en modo binario
             if (archivo == NULL) {
                 printf("Error al abrir el archivo.\n");
                 return 0;
@@ -151,9 +124,8 @@ int main(){
             fprintf(archivo,"[");
             char output[100];
             for(int j=0;j<N_rx;j++){
-                //if(cantidad > 10000){
-                    if(signal_i[j]>=0)sprintf(output, " %f +%fj,",(signal_q[j]),(signal_i[j]));   
-                    else sprintf(output, " %f %fj,", (signal_q[j]), (signal_i[j]));
+                    if(signal_i[j]>=0)sprintf(output, " %f +%fj,",(signal_q[j]/amplitude),(signal_i[j]/amplitude));   
+                    else sprintf(output, " %f %fj,", (signal_q[j]/amplitude), (signal_i[j]/amplitude));
 
                     fseek(archivo, 0, SEEK_END);
                     fprintf(archivo,output);
@@ -163,10 +135,11 @@ int main(){
             fclose(archivo);
         
     }
-    //printf("fin \n");
-    /* ----FIN---- */
+    
+    //printf(" FIN \n");
     //while (!stop);
     //sleep(7);
+    
     int ret_output;
     ret_output = iio_channel_attr_write(chnn_altvoltage1_output, "frequency", "710000000");//# Frecuencia de la portadora 710000000
     if (ret_output < 0) { 
@@ -179,15 +152,14 @@ int main(){
          return ret_output;
     }
  
-    //memset(signal, 0x00, n_samples_tx);
     iio_buffer_destroy(txbuf);
-    if(rx == true)iio_buffer_destroy(rxbuf);
-    
     iio_channel_disable(tx0_i);
     iio_channel_disable(tx0_q);
 
+    if(rx == true)iio_buffer_destroy(rxbuf);
     if(rx == true)iio_channel_disable(rx0_i);
     if(rx == true)iio_channel_disable(rx0_q);
+    
     iio_context_destroy(ctx);
     return 0;
 }
@@ -237,17 +209,14 @@ int config_filter(){
     char *values[num_linea];
 
     read_config_rx(config,values);
-    //printf("frecuency %d\n",atoi(values[0])); 
+    
     if(!strcmp(config[0],"sampling_frequency")){
         int rate = atoi(values[0]); 
         if(rate<521000 ){
             printf("Error frecuencia muy baja\n");
             return -1;
         }
-        else if(rate>60000000 ){
-            //printf("Error frecuencia muy alta\n");
-            return -1;
-        }
+        
         else if(rate<=20000000){
             //printf("2-->%d\n",atoi(values[0]));
             strcpy(name_filter,FILTRO_1);
@@ -262,11 +231,15 @@ int config_filter(){
             //printf("4-->%d\n",atoi(values[0]));
             strcpy(name_filter,FILTRO_3);
             //filtro = fopen(FILTRO_3, "r");
-        }
-        else{
+        }             //60380000
+        else if(rate <= 61440000){
             //printf("5-->%d\n",atoi(values[0]));
             strcpy(name_filter,FILTRO_4);
             //filtro = fopen(FILTRO_4, "r");
+        }
+        else{
+            printf("Error frecuencia muy alta\n");
+            return -1;
         }
         //printf("name_filter %s \n",name_filter);
         filtro = fopen(name_filter, "r");
