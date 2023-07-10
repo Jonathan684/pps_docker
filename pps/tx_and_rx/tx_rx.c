@@ -35,7 +35,7 @@ size_t RxBufferSize     = (pow(2, 23)-1);//(pow(2, 20)-1);
 /* PULSE*/
 int Longitud_del_pulso  = 1;
 int PRI = 50;
-int amplitud = (pow(2, 12)-1);//or (pow(2, 14)); jupyter
+int amplitud = (pow(2, 14));// jupyter
 
 bool rx = true;
 void handle_sig(int sig)
@@ -118,7 +118,7 @@ int main(){
     /*recibir*/
     usleep(100000);
     if(rx == true){
-            int N_rx = 4000;
+            int N_rx = (pow(2, 14));
             int I_rx = 0;
             double signal_i[N_rx];
             double signal_q[N_rx];
