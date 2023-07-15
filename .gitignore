@@ -15,7 +15,7 @@ receiver/*
 receiver_and_transmitter/*
 transmitter/*
 # Ignorar todos los archivos de texto
-*.txt
+#*.txt
 
 # Prerequisites
 *.d
