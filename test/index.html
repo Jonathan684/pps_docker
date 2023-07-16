@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Signal_tx_rx</title>
+   
+   <style>
+      body {
+         background-color: lightblue;
+         display: flex;
+         flex-direction: column;
+         justify-content: flex-start;
+         align-items: center;
+         height: 90vh; /* El cuerpo ocupa el 90% de la altura de la ventana */
+         margin: 0;
+         padding: 0;
+      }
+
+      h1 {
+         color: white; /* Cambia el color del texto a blanco */
+         text-align: center;
+         margin-top: 10vh; /* Ajusta la distancia entre el título y la parte superior de la página */
+      }
+
+      img {
+         display: block; /* Hace que la imagen sea un bloque */
+      }
+      #hora {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      color: black;
+      
+    }
+    #title {
+      
+      color: black;
+      
+    }
+    #ipForm {
+      display: flex;
+         flex-direction: column;
+         align-items: flex-start;
+         margin-top: 20px;
+      }
+
+      #ipInput {
+         margin-bottom: 10px;
+         color: black;
+         font-weight: bold; 
+      }
+
+      #ipLabel {
+         color: black; /* Cambia el color de la etiqueta "Dirección IP" a rojo */
+         font-weight: bold;
+         font-size: 30px;
+      }
+
+      #ejecutarButton {
+         font-size: 16px;
+         color: black;
+         font-weight: bold; /* Cambia el color del botón "Ejecutar" a azul */
+      }
+   </style>
+   <form id="ipForm">
+      <label for="ipInput" id="ipLabel">Direccion IP del SDR:</label>
+      <input type="text" id="ipInput" name="ip" value="192.168.1.36">
+      <button type="button" id="ejecutarButton" onclick="ejecutarScript()">Ejecutar</button>
+   </form>
+
+   <script>
+      function ejecutarScript() {
+      var ip = document.getElementById("ipInput").value;
+
+      // Crear una nueva solicitud HTTP
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/ejecutar_sh", true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+
+      // Enviar la dirección IP como datos JSON
+      xhr.send(JSON.stringify({ ip: ip }));
+
+      // Escuchar los eventos de carga y error de la solicitud
+      xhr.onload = function() {
+         if (xhr.status === 200) {
+            console.log("Archivo .sh ejecutado correctamente.");
+         } else {
+            console.log("Error al ejecutar el archivo .sh:", xhr.statusText);
+         }
+      };
+
+      xhr.onerror = function() {
+         console.log("Error de conexión al ejecutar el archivo .sh.");
+      };
+      }
+   </script>
+</head>
+
+                  
+<body >
+
+<!-- ip  -->
+
+     
+   <h1 id="hora"></h1>
+
+  <script>
+    function actualizarHora() {
+      var fecha = new Date();
+      var hora = fecha.getHours();
+      var minutos = fecha.getMinutes();
+      //var segundos = fecha.getSeconds();
+
+      var horaActual = hora + ":" + minutos //+ ":" + segundos;
+      document.getElementById("hora").textContent = "Hora actual: " + horaActual;
+
+      setTimeout(actualizarHora, 1000); // Actualizar cada segundo
+    }
+
+    actualizarHora();
+  </script>
+   <h1 id="title">PRACTICA PROFESIONAL SUPERVISADA</h1>
+   
+   <img src="test.png" alt="Descripción de la imagen" >
+</body>
+</html>
